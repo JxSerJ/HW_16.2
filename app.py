@@ -1,5 +1,6 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from database import db
+import prettytable
 
 application = Flask(__name__)
 application.config.from_pyfile("config.py")
@@ -7,7 +8,14 @@ application.config.from_pyfile("config.py")
 application.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{application.config.get("DATABASE_PATH")}'
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(application)
+db.app = application
+db.init_app(application)
+
+# tables cleanup
+db.drop_all()
+db.session().execute("VACUUM")
+db.create_all()
+db.session().commit()
 
 
 @application.route("/users/<int:uid>", methods=["GET"])
