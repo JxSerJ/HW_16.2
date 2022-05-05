@@ -1,7 +1,13 @@
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
 application = Flask(__name__)
 application.config.from_pyfile("config.py")
+
+application.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{application.config.get("DATABASE_PATH")}'
+application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(application)
 
 
 @application.route("/users/<int:uid>", methods=["GET"])
@@ -45,7 +51,7 @@ def delete_order_oid(oid: int):
 
 
 @application.route("/offers/<int:offid>", methods=["GET"])
-def get_orders(offid: int):
+def get_offers(offid: int):
     pass
 
 
