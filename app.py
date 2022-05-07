@@ -1,9 +1,17 @@
-from flask import Flask
-from database import db
-import prettytable
+from flask import Flask, jsonify
+from database.database import db
 
+from utils import add_users, add_offer, add_orders
+# from models import User, Order, Offer
+
+from users.views import users_module
+from orders.views import orders_module
+from offers.views import offers_module
+
+# initializing app and models
 application = Flask(__name__)
 application.config.from_pyfile("config.py")
+# application.config.from_pyfile("models.py")
 
 application.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{application.config.get("DATABASE_PATH")}'
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -11,71 +19,32 @@ application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.app = application
 db.init_app(application)
 
+
 # tables cleanup
-db.drop_all()
-db.session().execute("VACUUM")
-db.create_all()
-db.session().commit()
+with db.session() as session, session.begin():
+    db.drop_all()
+    session.execute("VACUUM")
+    db.create_all()
+    # db.session.commit()
+
+# loading initial data set
+add_users(application.config.get("USERS_INITIAL_DATA"))
+add_offer(application.config.get("OFFERS_INITIAL_DATA"))
+add_orders(application.config.get("ORDERS_INITIAL_DATA"))
+
+# views
+application.register_blueprint(users_module)
+application.register_blueprint(orders_module)
+application.register_blueprint(offers_module)
 
 
-@application.route("/users/<int:uid>", methods=["GET"])
-def get_users(uid: int):
-    pass
-
-
-@application.route("/users", methods=["POST"])
-def add_user():
-    pass
-
-
-@application.route("/users/<int:uid>", methods=["PUT"])
-def add_user_uid(uid: int):
-    pass
-
-
-@application.route("/users/<int:uid>", methods=["DELETE"])
-def delete_user_uid(uid: int):
-    pass
-
-
-@application.route("/orders/<int:oid>", methods=["GET"])
-def get_orders(oid: int):
-    pass
-
-
-@application.route("/orders", methods=["POST"])
-def add_order():
-    pass
-
-
-@application.route("/orders/<int:oid>", methods=["PUT"])
-def add_order_oid(oid: int):
-    pass
-
-
-@application.route("/orders/<int:oid>", methods=["DELETE"])
-def delete_order_oid(oid: int):
-    pass
-
-
-@application.route("/offers/<int:offid>", methods=["GET"])
-def get_offers(offid: int):
-    pass
-
-
-@application.route("/offers/<int:offid>", methods=["POST"])
-def add_offer():
-    pass
-
-
-@application.route("/offers/<int:offid>", methods=["PUT"])
-def add_offer_offid(offid: int):
-    pass
-
-
-@application.route("/offers/<int:offid>", methods=["DELETE"])
-def delete_offer_offid(offid: int):
-    pass
+@application.route("/", methods=["GET"])
+def index():
+    User = application.config.get('USER_OBJ')
+    data = session.query(User).all()
+    print(data)
+    return jsonify(data)
+    return "INDEX PAGE JUST FOR FUN"
 
 
 if __name__ == "__main__":
