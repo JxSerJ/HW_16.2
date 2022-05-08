@@ -25,15 +25,7 @@ def add_users(users_data_path: str) -> None:
         try:
             users_to_add = []
             for entry in data:
-                user_to_add = User(
-                    id=entry['id'],
-                    first_name=entry['first_name'],
-                    last_name=entry['last_name'],
-                    age=entry['age'],
-                    email=entry['email'],
-                    role=entry['role'],
-                    phone=entry['phone']
-                )
+                user_to_add = User(**entry)
                 users_to_add.append(user_to_add)
             db.session.add_all(users_to_add)
 
@@ -53,17 +45,25 @@ def add_orders(orders_data_path: str) -> None:
         with db.session() as session, session.begin():
             orders_to_add = []
             for entry in data:
-                order_to_add = Order(
-                    id=entry['id'],
-                    name=entry['name'],
-                    description=entry['description'],
-                    start_date=date_to_python_type(entry['start_date']),  # datetime.strptime(entry['start_date'], '%m/%d/%Y')
-                    end_date=date_to_python_type(entry['end_date']),  # datetime.strptime(entry['end_date'], '%m/%d/%Y')
-                    address=entry['address'],
-                    price=entry['price'],
-                    customer_id=entry['customer_id'],
-                    executor_id=entry['executor_id']
-                )
+                # order_to_add = Order(
+                #     id=entry['id'],
+                #     name=entry['name'],
+                #     description=entry['description'],
+                #     start_date=date_to_python_type(entry['start_date']),  # datetime.strptime(entry['start_date'], '%m/%d/%Y')
+                #     end_date=date_to_python_type(entry['end_date']),  # datetime.strptime(entry['end_date'], '%m/%d/%Y')
+                #     address=entry['address'],
+                #     price=entry['price'],
+                #     customer_id=entry['customer_id'],
+                #     executor_id=entry['executor_id']
+                # ) # code archived for education purposes
+
+                # date conversion
+                for entry_key, entry_value in entry.items():
+                    if 'date' in entry_key:
+                        entry_value = date_to_python_type(entry_value)
+                        entry[entry_key] = entry_value
+
+                order_to_add = Order(**entry)
                 orders_to_add.append(order_to_add)
             db.session().add_all(orders_to_add)
             # db.session.commit()
@@ -77,11 +77,7 @@ def add_offer(offers_data_path: str) -> None:
         with db.session() as session, session.begin():
             offers_to_add = []
             for entry in data:
-                offer_to_add = Offer(
-                    id=entry['id'],
-                    order_id=entry['order_id'],
-                    executor_id=entry['executor_id']
-                )
+                offer_to_add = Offer(**entry)
                 offers_to_add.append(offer_to_add)
             db.session().add_all(offers_to_add)
             # db.session.commit()

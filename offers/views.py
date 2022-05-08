@@ -1,8 +1,6 @@
 from flask import Blueprint, jsonify, request
-# from sqlalchemy import create_engine
-# from sqlalchemy.orm import sessionmaker
-from database.session import Session
 
+from database.session import Session
 from models import Offer
 from utils import instance_to_dict
 
@@ -15,11 +13,18 @@ def get_offers():
     if request.method == 'POST':
         with Session.begin() as session:
             data = request.json
+            # validating input data structure now
+            if not set(data).issubset(set(vars(Offer).keys())):
+                return "Not valid data structure. Provided keys are not allowed.", 400
+            elif 'id' in set(data):
+                return "Not valid data structure. ID key found. ID is forbidden to declare in data-set for " \
+                       "POST method.", 400
+            # writing data
             result = Offer(**data)
             session.add(result)
             result_to_view = instance_to_dict(result)
             return jsonify(result_to_view)
-
+    # query entries (GET)
     with Session.begin() as session:
         data = session.query(Offer).all()
         result = []
@@ -35,6 +40,13 @@ def add_offer_off_id(off_id: int):
         # update entry
         with Session.begin() as session:
             data = request.json
+            # validating input data structure now
+            if not set(data).issubset(set(vars(Offer).keys())):
+                return "Not valid data structure. Provided keys are not allowed.", 400
+            elif 'id' in set(data):
+                return "Not valid data structure. ID key found. ID is forbidden to declare in data-set for " \
+                       "PUT method. Use endpoint route for ID designation", 400
+            # writing data
             data_to_correct = session.query(Offer).get(off_id)
             for k, v in data.items():
                 setattr(data_to_correct, k, v)
@@ -50,7 +62,7 @@ def add_offer_off_id(off_id: int):
             return instance_to_dict(data_to_delete)
 
     else:
-        # query entry
+        # query entry (GET)
         with Session.begin() as session:
             data = session.query(Offer).get(off_id)
             result = instance_to_dict(data)

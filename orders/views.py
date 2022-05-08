@@ -1,10 +1,8 @@
 from flask import Blueprint, jsonify, request
-# from sqlalchemy import create_engine
-# from sqlalchemy.orm import sessionmaker
-from database.session import Session
 
+from database.session import Session
 from models import Order
-from utils import instance_to_dict
+from utils import instance_to_dict, date_to_python_type
 
 orders_module = Blueprint("orders", __name__)
 
@@ -15,11 +13,23 @@ def get_orders():
     if request.method == 'POST':
         with Session.begin() as session:
             data = request.json
+            # validating input data structure now
+            if not set(data).issubset(set(vars(Order).keys())):
+                return "Not valid data structure. Provided keys are not allowed.", 400
+            elif 'id' in set(data):
+                return "Not valid data structure. ID key found. ID is forbidden to declare in data-set for " \
+                       "POST method.", 400
+            # date conversion
+            for entry_key, entry_value in data.items():
+                if 'date' in entry_key:
+                    entry_value = date_to_python_type(entry_value)
+                    data[entry_key] = entry_value
+            # writing data
             result = Order(**data)
             session.add(result)
             result_to_view = instance_to_dict(result)
-            return jsonify(result_to_view)
-
+            return jsonify(result_to_view), 201
+    # query entries (GET)
     with Session.begin() as session:
         data = session.query(Order).all()
         result = []
@@ -35,6 +45,18 @@ def add_order_oid(oid: int):
         # update entry
         with Session.begin() as session:
             data = request.json
+            # validating input data structure now
+            if not set(data).issubset(set(vars(Order).keys())):
+                return "Not valid data structure. Provided keys are not allowed.", 400
+            elif 'id' in set(data):
+                return "Not valid data structure. ID key found. ID is forbidden to declare in data-set for " \
+                       "PUT method. Use endpoint route for ID designation", 400
+            # date conversion
+            for entry_key, entry_value in data.items():
+                if 'date' in entry_key:
+                    entry_value = date_to_python_type(entry_value)
+                    data[entry_key] = entry_value
+            # writing data
             data_to_correct = session.query(Order).get(oid)
             for k, v in data.items():
                 setattr(data_to_correct, k, v)
@@ -50,7 +72,7 @@ def add_order_oid(oid: int):
             return instance_to_dict(data_to_delete)
 
     else:
-        # query entry
+        # query entry (GET)
         with Session.begin() as session:
             data = session.query(Order).get(oid)
             result = instance_to_dict(data)
