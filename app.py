@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from database.database import db
 
-from utils import add_users, add_offer, add_orders
+from utils import add_users, add_offer, add_orders, ProjectJSONEncoder
 # from models import User, Order, Offer
 
 from users.views import users_module
@@ -15,6 +15,7 @@ application.config.from_pyfile("config.py")
 
 application.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{application.config.get("DATABASE_PATH")}'
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+application.json_encoder = ProjectJSONEncoder
 
 db.app = application
 db.init_app(application)

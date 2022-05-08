@@ -1,4 +1,4 @@
-# from flask import current_app
+from flask.json import JSONEncoder
 import datetime
 import json
 from datetime import date
@@ -9,15 +9,15 @@ from models import User, Order, Offer
 
 def instance_to_dict(instance) -> dict:
     """
-    Serialize implementation
+    Serialize implementation. Because handwriting dicts is very annoying
     """
     result = {keys: values for keys, values in vars(instance).items()}
     del result['_sa_instance_state']
     return result
 
 
-def add_users(users_data_path: str):
-
+def add_users(users_data_path: str) -> None:
+    """Populates Users table"""
     with open(users_data_path, 'r', encoding='UTF-8') as file:
         data = json.load(file)
 
@@ -45,8 +45,8 @@ def add_users(users_data_path: str):
         # session.commit()
 
 
-def add_orders(orders_data_path: str):
-
+def add_orders(orders_data_path: str) -> None:
+    """Populates Orders table"""
     with open(orders_data_path, "r", encoding='UTF-8') as file:
         data = json.load(file)
 
@@ -57,8 +57,8 @@ def add_orders(orders_data_path: str):
                     id=entry['id'],
                     name=entry['name'],
                     description=entry['description'],
-                    start_date=date_to_python_type(entry['start_date']), # datetime.strptime(entry['start_date'], '%m/%d/%Y')
-                    end_date=date_to_python_type(entry['end_date']), # datetime.strptime(entry['end_date'], '%m/%d/%Y')
+                    start_date=date_to_python_type(entry['start_date']),  # datetime.strptime(entry['start_date'], '%m/%d/%Y')
+                    end_date=date_to_python_type(entry['end_date']),  # datetime.strptime(entry['end_date'], '%m/%d/%Y')
                     address=entry['address'],
                     price=entry['price'],
                     customer_id=entry['customer_id'],
@@ -69,8 +69,8 @@ def add_orders(orders_data_path: str):
             # db.session.commit()
 
 
-def add_offer(offers_data_path: str):
-
+def add_offer(offers_data_path: str) -> None:
+    """Populates Offers table"""
     with open(offers_data_path, "r", encoding='UTF-8') as file:
         data = json.load(file)
 
@@ -88,8 +88,15 @@ def add_offer(offers_data_path: str):
 
 
 def date_to_python_type(date_input: str) -> date:
-
+    """Converts DB-specific date into python type date"""
     date_entries_list = date_input.split("/")
     date_result = datetime.date(int(date_entries_list[2]), int(date_entries_list[0]), int(date_entries_list[1]))
-
     return date_result
+
+
+class ProjectJSONEncoder(JSONEncoder):
+    """Custom JSONEncoder to ensure browser level response outputs date in ISO format"""
+    def default(self, data_object):
+        if isinstance(data_object, date):
+            return data_object.isoformat()
+        return JSONEncoder.default(self, data_object)
