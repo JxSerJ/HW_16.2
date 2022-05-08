@@ -64,6 +64,10 @@ def users_handler(uid: int):
     else:
         # query entry (GET)
         with Session.begin() as session:
-            data = session.query(User).get(uid)
-            result = instance_to_dict(data)
-            return jsonify(result)
+            try:
+                data = session.query(User).get(uid)
+                result = instance_to_dict(data)
+                return jsonify(result)
+            except TypeError:
+                return "Data not found", 404
+

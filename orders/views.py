@@ -74,6 +74,9 @@ def add_order_oid(oid: int):
     else:
         # query entry (GET)
         with Session.begin() as session:
-            data = session.query(Order).get(oid)
-            result = instance_to_dict(data)
-            return jsonify(result)
+            try:
+                data = session.query(Order).get(oid)
+                result = instance_to_dict(data)
+                return jsonify(result)
+            except TypeError:
+                return "Data not found", 404

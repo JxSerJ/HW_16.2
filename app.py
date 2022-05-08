@@ -2,7 +2,6 @@ from flask import Flask, jsonify
 from database.database import db
 
 from utils import add_users, add_offer, add_orders, ProjectJSONEncoder
-# from models import User, Order, Offer
 
 from users.views import users_module
 from orders.views import orders_module
@@ -11,7 +10,6 @@ from offers.views import offers_module
 # initializing app and models
 application = Flask(__name__)
 application.config.from_pyfile("config.py")
-# application.config.from_pyfile("models.py")
 
 application.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{application.config.get("DATABASE_PATH")}'
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -41,10 +39,6 @@ application.register_blueprint(offers_module)
 
 @application.route("/", methods=["GET"])
 def index():
-    User = application.config.get('USER_OBJ')
-    data = session.query(User).all()
-    print(data)
-    return jsonify(data)
     return "INDEX PAGE JUST FOR FUN"
 
 

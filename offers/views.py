@@ -64,6 +64,9 @@ def add_offer_off_id(off_id: int):
     else:
         # query entry (GET)
         with Session.begin() as session:
-            data = session.query(Offer).get(off_id)
-            result = instance_to_dict(data)
-            return jsonify(result)
+            try:
+                data = session.query(Offer).get(off_id)
+                result = instance_to_dict(data)
+                return jsonify(result)
+            except TypeError:
+                return "Data not found", 404
