@@ -67,9 +67,12 @@ def add_order_oid(oid: int):
     elif request.method == 'DELETE':
         # delete entry
         with Session.begin() as session:
-            data_to_delete = session.query(Order).get(oid)
-            session.delete(data_to_delete)
-            return instance_to_dict(data_to_delete)
+            try:
+                data_to_delete = session.query(Order).get(oid)
+                session.delete(data_to_delete)
+                return instance_to_dict(data_to_delete)
+            except Exception:
+                return "Data not found", 404
 
     else:
         # query entry (GET)

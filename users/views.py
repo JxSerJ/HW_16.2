@@ -57,9 +57,12 @@ def users_handler(uid: int):
     elif request.method == 'DELETE':
         # delete entry
         with Session.begin() as session:
-            data_to_delete = session.query(User).get(uid)
-            session.delete(data_to_delete)
-            return instance_to_dict(data_to_delete)
+            try:
+                data_to_delete = session.query(User).get(uid)
+                session.delete(data_to_delete)
+                return instance_to_dict(data_to_delete)
+            except Exception:
+                return "Data not found", 404
 
     else:
         # query entry (GET)
@@ -70,4 +73,3 @@ def users_handler(uid: int):
                 return jsonify(result)
             except TypeError:
                 return "Data not found", 404
-
