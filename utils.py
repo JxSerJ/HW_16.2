@@ -12,7 +12,8 @@ def instance_to_dict(instance) -> dict:
     Serialize implementation. Because handwriting dicts is very annoying
     """
     result = {keys: values for keys, values in vars(instance).items()}
-    del result['_sa_instance_state']
+    if result['_sa_instance_state']:
+        del result['_sa_instance_state']
     return result
 
 
